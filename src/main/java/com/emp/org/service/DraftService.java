@@ -19,4 +19,6 @@ public interface DraftService {
 
     List<?> submitDraftClaim(List<MultipartFile> files, List<DraftModel> fileUploadDraftList)
             throws IOException;
+
+    List<DraftModel>getAllByExpType(String expType);
 }
