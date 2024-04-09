@@ -9,12 +9,13 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.emp.org.model.AdvClaimModel;
+import com.emp.org.model.ClaimsModel;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.emp.org.model.AdvClaimModel;
-import com.emp.org.model.ClaimsModel;
 import com.emp.org.model.DraftModel;
 import com.emp.org.repository.AdvClaimRepository;
 import com.emp.org.repository.ClaimsRepository;
@@ -25,11 +26,11 @@ public class DraftServiceImpl implements DraftService {
 
     @Autowired
     private DraftRepository draftRepository;
-    
+
     @Autowired
     private AdvClaimRepository advClaimRepository;
 
-    
+
     @Autowired
     private ClaimsRepository claimsRepository;
 
@@ -53,8 +54,6 @@ public class DraftServiceImpl implements DraftService {
     public List<DraftModel> uploadDraftClaim(List<MultipartFile> files, List<DraftModel> fileUploadDraftList)
             throws IOException {
         List<DraftModel> draftModelList = new ArrayList<>();
-        List<AdvClaimModel> advCliamModelList = new ArrayList<>();
-        List<ClaimsModel> claimModelList = new ArrayList<>();
 
         for (int i = 0; i < fileUploadDraftList.size(); i++) {
             MultipartFile file = files.get(i);
@@ -79,88 +78,102 @@ public class DraftServiceImpl implements DraftService {
                 fileUploadDraft.setCurrency(fileUploadDraft.getCurrency());
                 fileUploadDraft.setFilePath(uploadDir + file.getOriginalFilename());
 
-                draftModelList.add(fileUploadDraft);
-                
-            }
 
+
+                draftModelList.add(fileUploadDraft);
+            }
         }
-        
+
         return draftRepository.saveAll(draftModelList);
-        
-        
-        
+
+
+
+
+
+
+    }
+
+
+    @Override
+    @Transactional
+    public List<?> submitDraftClaim(List<MultipartFile> files, List<DraftModel> fileUploadDraftList) throws IOException {
+        List<AdvClaimModel> advClaimModelList = new ArrayList<>();
+        List<ClaimsModel> claimsModelList = new ArrayList<>();
+        boolean rta=false;
+        Long wbsIdUnique=0L;
+
         for (int i = 0; i < fileUploadDraftList.size(); i++) {
             MultipartFile file = files.get(i);
+            DraftModel fileUploadDraft = fileUploadDraftList.get(i);
 
-            AdvClaimModel fileUploadDraft = fileUploadDraftList.get(i);
-            
-            if(fileUploadDraft.getExpenseType().equals("RTA")||fileUploadDraft.getExpenseType().equals("IOU")) {
-            	 if (!file.isEmpty()) {
-                     byte[] bytes = file.getBytes();
+            if (fileUploadDraft.getExpenseType().equals("IOU") || fileUploadDraft.getExpenseType().equals("RTA")) {
+                rta = false;
+                if (!file.isEmpty()) {
+                    byte[] bytes = file.getBytes();
 
-                     Path path = Paths.get(uploadDir + "\\" + file.getOriginalFilename());
-                     Files.write(path, bytes);
-                     fileUploadDraft.setFileName(file.getOriginalFilename());
-                     fileUploadDraft.setToDate(fileUploadDraft.getToDate());
-                     fileUploadDraft.setPurpose(fileUploadDraft.getPurpose());
-                     fileUploadDraft.setExpenseType(fileUploadDraft.getExpenseType());
-                     fileUploadDraft.setAmount(fileUploadDraft.getAmount());
-                     fileUploadDraft.setCurrency(fileUploadDraft.getCurrency());
-                     fileUploadDraft.setFilePath(uploadDir + file.getOriginalFilename());
+                    Path path = Paths.get(uploadDir + "\\" + file.getOriginalFilename());
+                    Files.write(path, bytes);
 
-                     advCliamModelList.add(fileUploadDraft);
-                 }
+                    AdvClaimModel advClaimModel = new AdvClaimModel();
+                    advClaimModel.setFileName(file.getOriginalFilename());
+                    advClaimModel.setToDate(fileUploadDraft.getToDate());
+                    advClaimModel.setPurpose(fileUploadDraft.getPurpose());
+                    advClaimModel.setExpenseType(fileUploadDraft.getExpenseType());
+                    advClaimModel.setAmount(fileUploadDraft.getAmount());
+                    advClaimModel.setCurrency(fileUploadDraft.getCurrency());
+                    advClaimModel.setFilePath(uploadDir + file.getOriginalFilename());
+
+                    wbsIdUnique=fileUploadDraft.getWbsId();
 
 
-            	
-            }
-        }
-            advClaimRepository.saveAll(advCliamModelList);
-        
-            
-            
-            
-            for (int i = 0; i < fileUploadDraftList.size(); i++) {
-                MultipartFile file = files.get(i);
 
-                DraftModel fileUploadDraft = fileUploadDraftList.get(i);
-                
-                if(fileUploadDraft.getExpenseType().equals("Conveyance")||fileUploadDraft.getExpenseType().equals("Travel")||fileUploadDraft.getExpenseType().equals("Food")||fileUploadDraft.getExpenseType().equals("Mobile")||fileUploadDraft.getExpenseType().equals("Miscellaneous")) {
-                	
-                	  if (!file.isEmpty()) {
-                          byte[] bytes = file.getBytes();
+                    advClaimModelList.add(advClaimModel);
+                }
+            } else {
+                rta = true;
+                if (!file.isEmpty()) {
+                    byte[] bytes = file.getBytes();
 
-                          Path path = Paths.get(uploadDir + "\\" + file.getOriginalFilename());
-                          Files.write(path, bytes);
-                          fileUploadDraft.setFileName(file.getOriginalFilename());
-                          fileUploadDraft.setToDate(fileUploadDraft.getToDate());
-                          fileUploadDraft.setFromLocation(fileUploadDraft.getFromLocation());
-                          fileUploadDraft.setToLocation(fileUploadDraft.getToLocation());
-                          fileUploadDraft.setToTime(fileUploadDraft.getToTime());
-                          fileUploadDraft.setMode(fileUploadDraft.getMode());
-                          fileUploadDraft.setKms(fileUploadDraft.getKms());
-                          fileUploadDraft.setPurpose(fileUploadDraft.getPurpose());
-                          fileUploadDraft.setExpenseType(fileUploadDraft.getExpenseType());
-                          fileUploadDraft.setAmount(fileUploadDraft.getAmount());
-                          fileUploadDraft.setCurrency(fileUploadDraft.getCurrency());
-                          fileUploadDraft.setFilePath(uploadDir + file.getOriginalFilename());
+                    Path path = Paths.get(uploadDir + "\\" + file.getOriginalFilename());
+                    Files.write(path, bytes);
 
-                          
-                          draftModelList.add(fileUploadDraft);
-                      }
-                	
+                    ClaimsModel claimsModel = new ClaimsModel();
+                    claimsModel.setFileName(file.getOriginalFilename());
+                    claimsModel.setToDate(fileUploadDraft.getToDate());
+                    claimsModel.setFromLocation(fileUploadDraft.getFromLocation());
+                    claimsModel.setToLocation(fileUploadDraft.getToLocation());
+                    claimsModel.setToTime(fileUploadDraft.getToTime());
+                    claimsModel.setMode(fileUploadDraft.getMode());
+                    claimsModel.setKms(fileUploadDraft.getKms());
+                    claimsModel.setPurpose(fileUploadDraft.getPurpose());
+                    claimsModel.setExpenseType(fileUploadDraft.getExpenseType());
+                    claimsModel.setAmount(fileUploadDraft.getAmount());
+                    claimsModel.setCurrency(fileUploadDraft.getCurrency());
+                    claimsModel.setMobileNo(fileUploadDraft.getMobileNo());
+                    claimsModel.setFromDate(fileUploadDraft.getFromDate());
+                    claimsModel.setFromTime(fileUploadDraft.getFromTime());
+                    claimsModel.setTypeOfExpense(fileUploadDraft.getTypeOfExpense());
+                    claimsModel.setRequestNo(fileUploadDraft.getRequestNo());
+                    claimsModel.setStatus(fileUploadDraft.getStatus());
+                    claimsModel.setWbsId(fileUploadDraft.getWbsId());
+                    claimsModel.setLocationOfExp(fileUploadDraft.getLocationOfExp());
+
+                    claimsModel.setFilePath(uploadDir + file.getOriginalFilename());
+
+                    wbsIdUnique=fileUploadDraft.getWbsId();   // fetched here autogenerated project_id
+
+                    claimsModelList.add(claimsModel);
                 }
             }
-            claimsRepository.saveAll(draftModelList);
-            
-        
+        }
 
-         
-           
+        if (!rta) {
+            draftRepository.deleteByWbsId(wbsIdUnique);
+            return advClaimRepository.saveAll(advClaimModelList);
+        } else {
+            draftRepository.deleteByWbsId(wbsIdUnique);
+            return  claimsRepository.saveAll(claimsModelList);
+        }
     }
-    
-    
-    
-    
 }
 

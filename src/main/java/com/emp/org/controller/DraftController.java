@@ -43,6 +43,20 @@ public class DraftController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Files and data not saved");
         }
     }
+
+
+
+    @PostMapping("/submitDraftClaim")
+    public ResponseEntity<?> submitDraftClaim(
+            @RequestPart("files") List<MultipartFile> files,
+            @RequestPart("data") List<DraftModel> fileUploadDraftList) throws IOException {
+        List<?> uploadedDrafts = draftService.submitDraftClaim(files, fileUploadDraftList);
+        if (!uploadedDrafts.isEmpty()) {
+            return ResponseEntity.ok("Files and data saved successfully");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Files and data not saved");
+        }
+    }
 }
 
 

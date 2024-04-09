@@ -7,4 +7,6 @@ import com.emp.org.model.DraftModel;
 
 public interface DraftRepository extends JpaRepository<DraftModel,Integer> {
 
+    void deleteByWbsId(Long wbsId);
+
 }

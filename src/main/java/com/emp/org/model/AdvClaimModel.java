@@ -37,7 +37,7 @@ public class AdvClaimModel {
 //	private LocalDate fromDate;
 	
 	@Column
-	private Date toDate;
+	private LocalDate toDate;
 	
 //	@Column
 //	private Long mobileNo;
